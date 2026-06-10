@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SST Trigger Environment</title>
+
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TTZ2JRGD"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+    </head>
+<body>
+
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TTZ2JRGD"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+    <div style="font-family: sans-serif; padding: 50px; max-width: 600px; margin: auto;">
+        <h1>SST Validation Trigger</h1>
+        <p>This is a blank environment used strictly to validate Server-Side Tagging (SST) routing.</p>
+        <button id="test-purchase-btn" style="padding: 15px 30px; font-size: 16px; background-color: #0052CC; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Fire Test Purchase Event
+        </button>
+    </div>
+
+    <script>
+        document.getElementById('test-purchase-btn').addEventListener('click', function() {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                event: 'purchase',
+                ecommerce: {
+                    transaction_id: 'SST-TEST-' + Math.floor(Math.random() * 10000),
+                    value: 99.99,
+                    currency: 'USD'
+                }
+            });
+            console.log("Mock purchase event pushed to dataLayer.");
+            alert("Test event fired! Check GTM Preview Mode.");
+        });
+    </script>
+</body>
+</html>
