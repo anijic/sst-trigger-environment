@@ -3,46 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SST Trigger Environment</title>
+    <title>SST Trigger Environment | Dual-Tagging & Consent</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background-color: #f8f9fa; }
+        .card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button { background-color: #0056b3; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; margin-top: 20px; }
+        button:hover { background-color: #004494; }
+        .consent-panel { background: #e9ecef; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
+        pre { background: #2d2d2d; color: #a9b7c6; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 13px; }
+    </style>
 
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-TTZ2JRGD');</script>
-<!-- End Google Tag Manager -->
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        
+        // Default Consent: Denied
+        gtag('consent', 'default', {
+            'ad_storage': 'denied',
+            'analytics_storage': 'denied',
+            'wait_for_update': 500
+        });
+        gtag('set', 'ads_data_redaction', true);
+    </script>
 
-</head>
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TTZ2JRGD');</script>
+    </head>
 <body>
 
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TTZ2JRGD"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
+    <div class="card">
+        <h2>SST Trigger Environment</h2>
+        <p>Testing Meta CAPI Deduplication & Consent Mode v2 routing via GCP App Engine.</p>
 
-    <div style="font-family: sans-serif; padding: 50px; max-width: 600px; margin: auto;">
-        <h1>SST Validation Trigger</h1>
-        <p>This is a blank environment used strictly to validate Server-Side Tagging (SST) routing.</p>
-        <button id="test-purchase-btn" style="padding: 15px 30px; font-size: 16px; background-color: #0052CC; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Fire Test Purchase Event
-        </button>
+        <div class="consent-panel">
+            <h4>Consent Mode v2 Simulator</h4>
+            <label>
+                <input type="checkbox" id="consentToggle"> 
+                User Grants Consent (ad_storage & analytics_storage)
+            </label>
+        </div>
+
+        <button id="purchaseBtn">Simulate E-Commerce Purchase</button>
+
+        <h4>DataLayer Output Log:</h4>
+        <pre id="logOutput">// Waiting for event...</pre>
     </div>
 
     <script>
-        document.getElementById('test-purchase-btn').addEventListener('click', function() {
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-                event: 'purchase',
-                ecommerce: {
-                    transaction_id: 'SST-TEST-' + Math.floor(Math.random() * 10000),
-                    value: 99.99,
-                    currency: 'USD'
-                }
+        // Consent Toggle Logic
+        document.getElementById('consentToggle').addEventListener('change', function(e) {
+            const status = e.target.checked ? 'granted' : 'denied';
+            gtag('consent', 'update', {
+                'ad_storage': status,
+                'analytics_storage': status
             });
-            console.log("Mock purchase event pushed to dataLayer.");
-            alert("Test event fired! Check GTM Preview Mode.");
+            logToScreen('Consent updated: ' + status);
         });
+
+        // Purchase Simulation Logic
+        document.getElementById('purchaseBtn').addEventListener('click', function() {
+            // Generate deterministic event_id anchored to the transaction
+            const transactionId = 'T_' + Math.floor(Math.random() * 1000000);
+            const timestamp = Date.now();
+            const deterministicEventId = 'purchase_' + transactionId + '_' + timestamp;
+
+            const payload = {
+                event: 'purchase',
+                event_id: deterministicEventId, // CRITICAL: Used for Meta CAPI deduplication
+                ecommerce: {
+                    transaction_id: transactionId,
+                    value: 149.99,
+                    currency: 'USD',
+                    items: [{
+                        item_name: 'Server-Side Tagging Audit',
+                        item_id: 'SKU_SST_01',
+                        price: 149.99,
+                        quantity: 1
+                    }]
+                }
+            };
+
+            window.dataLayer.push(payload);
+            logToScreen('Purchase fired with event_id: ' + deterministicEventId + '\n\nPayload:\n' + JSON.stringify(payload, null, 2));
+        });
+
+        // Simple logging function for the UI
+        function logToScreen(message) {
+            document.getElementById('logOutput').innerText = message;
+        }
     </script>
 </body>
 </html>
